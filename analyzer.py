@@ -1,14 +1,15 @@
 import re
-import numpy as np
 import pandas as pd
 from datetime import datetime
 import matplotlib.pyplot as plt
 
 message_regex = re.compile(r"^\[(\d{1,2}\.\d{1,2}\.\d{4}\,\s\d{2}\:\d{2})\]\s([\w\s]+)\:\s(.+)$")
+weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
 message_data_frames = []
 
 with open("./messages.txt") as chat_log:
+    print(type(chat_log))
     for message in chat_log:
         result = re.search(message_regex, message)
         if result:
@@ -26,9 +27,10 @@ with open("./messages.txt") as chat_log:
 
 
 chat_data_frame = pd.concat(message_data_frames)
-chat_data_frame["weekday"] = chat_data_frame["datetime"].apply(lambda date: date.strftime("%A"))
+chat_data_frame["weekday"] = chat_data_frame["datetime"].apply(lambda date: date.weekday())
 chat_data_frame["hour_of_the_day"] = chat_data_frame["datetime"].apply(lambda date: date.hour)
 
-plt.close("all")
-chat_data_frame['sender'].value_counts(sort=False).plot.pie()
+data_set = chat_data_frame['weekday'].value_counts(sort=False).reindex(range(7), fill_value=0).sort_index()
+data_set.plot(kind="bar")
+plt.xticks(range(7), weekdays)
 plt.show()
